@@ -2,15 +2,15 @@
 Debugging code
 ==============
 
-**Author**: *Gaël Varoquaux*
+**作者**: *Gaël Varoquaux*  
+**翻译**: *黄海源*  
 
-This section explores tools to understand better your code base:
-debugging, to find and fix bugs.
+本章通过介绍如下知识点以帮助您更好地了解您的代码:
+调试，发现以及修复bug。
 
-It is not specific to the scientific Python community, but the strategies
-that we will employ are tailored to its needs.
+对于Python科学计算领域而言，调试并没有什么特别的，但我们介绍的调试策略更加符合科学计算编程的需求。
 
-.. topic:: Prerequisites
+.. topic:: 准备
 
     * Numpy
     * IPython
@@ -18,43 +18,40 @@ that we will employ are tailored to its needs.
     * pyflakes (http://pypi.python.org/pypi/pyflakes)
     * gdb for the C-debugging part.
 
-.. contents:: Chapter contents
+.. contents:: 本章内容
    :local:
    :depth: 2
 
 
-Avoiding bugs
+避免bug
 =============
 
-Coding best practices to avoid getting in trouble
+避免陷入麻烦的编程最佳实践
 --------------------------------------------------
 
 .. sidebar:: Brian Kernighan
 
-   *“Everyone knows that debugging is twice as hard as writing a
-   program in the first place. So if you're as clever as you can be
-   when you write it, how will you ever debug it?”*
+   *“每个人都知道调试本来就要比写程序要难至少两倍。
+   因为，如果当初你写代码的时候足够聪明，你又怎么会去调试它呢？”*
 
-* We all write buggy code.  Accept it.  Deal with it.
-* Write your code with testing and debugging in mind.
-* Keep It Simple, Stupid (KISS).
+* 我都会写出有bug的代码。你必须面对这个现实，然后再去解决这些bug。
+* 写代码的时候要时刻记着以后你可能会测试、调试它。
+* 保持代码简单易懂。
 
   * What is the simplest thing that could possibly work?
 
-* Don't Repeat Yourself (DRY).
+* 不要重复你自己.
 
-  * Every piece of knowledge must have a single, unambiguous,
-    authoritative representation within a system.
-  * Constants, algorithms, etc...
+  * 一个系统内部所有的知识点都应当是独立、无歧义、完整的表达(其实就是别copy&paste)。
+  * 常量，算法等…
 
-* Try to limit interdependencies of your code. (Loose Coupling)
-* Give your variables, functions and modules meaningful names (not
-  mathematics names)
+* 尽量限制代码之间的依赖关系
+* 给你的变量、函数、模块具有意义的命名(尽量别用数字来区分不同变量)
 
-pyflakes: fast static analysis
+pyflakes: 快速静态分析代码
 -------------------------------
 
-They are several static analysis tools in Python; to name a few:
+对于Python有一些静态分析工具，罗列几个如下：
 
 * `pylint <http://www.logilab.org/857>`_
 * `pychecker <http://pychecker.sourceforge.net/>`_
@@ -62,26 +59,22 @@ They are several static analysis tools in Python; to name a few:
 * `pep8 <http://pypi.python.org/pypi/pep8>`_
 * `flake8 <http://pypi.python.org/pypi/flake8>`_
 
-Here we focus on `pyflakes`, which is the simplest tool.
+这里我们关注其中最简单的`pyflakes`。
 
-    * **Fast, simple**
+    * **快速，简单**
 
-    * Detects syntax errors, missing imports, typos on names.
+    * 发现语法错误，缺失import，命名的误写。
 
-Another good recommendation is the `flake8` tool which is a combination of
-pyflakes and pep8. Thus, in addition to the types of errors that pyflakes
-catches, flake8 detects violations of the recommendation in `PEP8
-<https://www.python.org/dev/peps/pep-0008/>`_ style guide.
+另一个推荐是`flake8`，它是pyflakes和pep8的结合。因此，除了pyflakes能够发现的问题，flake8还可以检查出代码中违反了`PEP8 <https://www.python.org/dev/peps/pep-0008/>`_ 风格的地方。
 
-Integrating pyflakes (or flake8) in your editor or IDE is highly
-recommended, it **does yield productivity gains**.
+强烈推荐将pyflakes(或者flake8)集成到你的编辑器或者IDE中，**这可以大幅提高您的工作效率**。
 
-Running pyflakes on the current edited file
+对当前编辑的文件中运行pyflakes
 ............................................
 
-You can bind a key to run pyflakes in the current buffer.
+在当前的缓冲区中你可以为运行pyflakes绑定一个快捷键。
 
-* **In kate**
+* **kate**
   Menu: 'settings -> configure kate
 
     * In plugins enable 'external tools'
@@ -90,26 +83,25 @@ You can bind a key to run pyflakes in the current buffer.
 
         kdialog --title "pyflakes %filename" --msgbox "$(pyflakes %filename)"
 
-* **In TextMate**
+* **TextMate**
 
-  Menu: TextMate -> Preferences -> Advanced -> Shell variables, add a
-  shell variable::
+  Menu: TextMate -> Preferences -> Advanced -> Shell variables, 增加一个shell变量::
 
     TM_PYCHECKER = /Library/Frameworks/Python.framework/Versions/Current/bin/pyflakes
 
-  Then `Ctrl-Shift-V` is binded to a pyflakes report
+  这样`Ctrl-Shift-V`就可以为你产出pyflakes报告了。
 
 
-* **In vim**
-  In your `.vimrc` (binds F5 to `pyflakes`)::
+* **vim**
+  编辑你的`.vimrc`文件(这里绑定F5)::
 
     autocmd FileType python let &mp = 'echo "*** running % ***" ; pyflakes %'
     autocmd FileType tex,mp,rst,python imap <Esc>[15~ <C-O>:make!^M
     autocmd FileType tex,mp,rst,python map  <Esc>[15~ :make!^M
     autocmd FileType tex,mp,rst,python set autowrite
 
-* **In emacs**
-  In your `.emacs` (binds F5 to `pyflakes`)::
+* **emacs**
+  编辑你的`.emacs`文件 (这里绑定F5)::
 
     (defun pyflakes-thisfile () (interactive)
            (compile (format "pyflakes %s" (buffer-file-name)))
@@ -130,33 +122,31 @@ You can bind a key to run pyflakes in the current buffer.
 
     (add-hook 'python-mode-hook (lambda () (pyflakes-mode t)))
 
-A type-as-go spell-checker like integration
+即时检查风格的集成
 ............................................
 
-* **In vim**
+* **vim**
 
-  * Use the pyflakes.vim plugin:
+  * 使用pyflakes.vim插件:
 
-    #. download the zip file from
+    #. 从如下地址下载.zip文件
        http://www.vim.org/scripts/script.php?script_id=2441
 
-    #. extract the files in ``~/.vim/ftplugin/python``
+    #. 解压至 ``~/.vim/ftplugin/python``
 
-    #. make sure your vimrc has ``filetype plugin indent on``
+    #. 确认你的.vimrc文件中有 ``filetype plugin indent on``
 
     .. image:: vim_pyflakes.png
 
-  * Alternatively: use the `syntastic
-    <https://github.com/scrooloose/syntastic>`_
-    plugin. This can be configured to use ``flake8`` too and also handles
-    on-the-fly checking for many other languages.
+  * 或者: 使用`syntastic <https://github.com/scrooloose/syntastic>`_
+    插件. 通过配置，它可以使用``flake8``，同时它也能为其他很多语言提供即时的检查功能。
 
     .. image:: vim_syntastic.png
 
-* **In emacs**
-  Use the flymake mode with pyflakes, documented on
-  http://www.plope.com/Members/chrism/flymake-mode : add the following to
-  your .emacs file::
+* **emacs**
+
+  结合pyflakes使用flymake，具体文档请参考
+  http://www.plope.com/Members/chrism/flymake-mode : 编辑你的.emacs文件::
 
     (when (load "flymake" t)
             (defun flymake-pyflakes-init ()
@@ -172,15 +162,13 @@ A type-as-go spell-checker like integration
 
     (add-hook 'find-file-hook 'flymake-find-file-hook)
 
-Debugging workflow
+调试流程
 ===================
 
-If you do have a non trivial bug, this is when debugging strategies kick
-in. There is no silver bullet. Yet, strategies help:
+如果你确实有一个难搞的bug，那么是时候动用调试策略了。
+虽无锦囊一招制敌，但调试策略确实有帮助：
 
-   **For debugging a given problem, the favorable situation is when the
-   problem is isolated in a small number of lines of code, outside
-   framework or application code, with short modify-run-fail cycles**
+   **对于调试而言，最好的情况是：问题定位在某几行代码中，和框架、应用代码无关，可以小成本地进行'修改-运行-失败'的调试。**
 
 #. Make it fail reliably.  Find a test case that makes the code fail
    every time.
